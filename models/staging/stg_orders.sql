@@ -1,0 +1,34 @@
+select 
+--from order table
+{{ dbt_utils.surrogate_key(['o.orderid', 'c.customerid', 'p.productid']) }} as sk,
+o.orderid,
+o.orderdate,
+o.shipdate,
+o.shipmode,
+o.ordersellingprice,
+o.ordercostprice,
+o.ordersellingprice - o.ordercostprice as orderprofit,
+
+--from customer table
+c.customerid,
+c.customername,
+c.segment,
+c.country,
+
+--from product table
+p.category,
+p.productname,
+p.subcategory,
+p.productid,
+
+{{ markup( 'ordersellingprice', 'ordercostprice' ) }} as markup,
+--delivery team
+d.delivery_team
+
+from {{ ref('raw_orders') }} o
+left join {{ ref('raw_customers') }} as c
+on o.customerid = c.customerid
+left join {{ ref('raw_products') }} as p
+on o.productid = p.productid
+left join {{ ref('delivery_team') }} as d
+on d.shipmode = o.shipmode
